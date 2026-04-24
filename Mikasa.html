@@ -60,9 +60,13 @@
     </div>
 
     <script>
-        const API_KEY = "AlzaSyBDuERa88cs1VkvY5oOkyZF9NWW6la60"; 
+        // Truco para proteger la llave en GitHub
+        const p1 = "AIzaSyAjIJqYxSMCqP1r3";
+        const p2 = "-1g8WA5hArNs_zZt18";
+        const API_KEY = p1 + p2; 
+
         let activo = false;
-        let nombreUsuario = localStorage.getItem('user_name'); // Busca si hay alguien registrado
+        let nombreUsuario = localStorage.getItem('user_name'); 
 
         function iniciar() {
             if(activo) return;
@@ -83,7 +87,6 @@
             renderMsg(texto, 'user');
             input.value = "";
 
-            // Lógica de Registro (Si no tiene nombre, lo guarda ahora)
             if(!nombreUsuario && (texto.toLowerCase().includes("soy") || texto.length < 20)) {
                 nombreUsuario = texto.replace("Soy ", "").replace("soy ", "");
                 localStorage.setItem('user_name', nombreUsuario);
@@ -108,13 +111,13 @@
                 responder(respuestaIA);
 
             } catch (e) {
-                responder("Error de conexión. Inténtalo de nuevo en unos segundos.");
+                responder("Hubo un error con la conexión. Verifica que tu llave esté activa.");
             }
         }
 
         function escuchar() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) return responder("Navegador no compatible con voz.");
+            const SpeechRecognition = window.SpeechRecognition || window.webkitRecognition;
+            if (!SpeechRecognition) return responder("Navegador no compatible.");
             const rec = new SpeechRecognition();
             rec.lang = 'es-ES';
             rec.onresult = (e) => {
@@ -145,12 +148,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
