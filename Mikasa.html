@@ -16,18 +16,6 @@ color:#fff;
 height:100vh;
 display:flex;
 flex-direction:column;
-overflow:hidden;
-}
-
-/* HEADER */
-header{
-position:absolute;
-top:15px;
-left:15px;
-color:var(--c1);
-font-weight:900;
-letter-spacing:3px;
-z-index:10;
 }
 
 /* ORB */
@@ -42,18 +30,17 @@ pointer-events:none;
 }
 
 .orb{
-width:130px;
-height:130px;
+width:120px;
+height:120px;
 border-radius:50%;
 background: radial-gradient(circle at 30% 30%, var(--c1), var(--c2));
-filter: blur(6px);
-box-shadow:0 0 50px var(--c1);
+filter: blur(5px);
 animation:pulse 4s infinite;
 }
 
 @keyframes pulse{
 0%{transform:scale(1);}
-50%{transform:scale(1.08);}
+50%{transform:scale(1.1);}
 100%{transform:scale(1);}
 }
 
@@ -70,8 +57,8 @@ z-index:2;
 
 .m{
 max-width:80%;
-padding:12px;
-border-radius:15px;
+padding:10px;
+border-radius:10px;
 }
 
 .u{
@@ -82,7 +69,6 @@ background:#222;
 .i{
 align-self:flex-start;
 background:#111;
-border:1px solid #333;
 }
 
 /* INPUT */
@@ -90,40 +76,26 @@ border:1px solid #333;
 position:fixed;
 bottom:0;
 width:100%;
-padding:10px;
-background:#111;
 display:flex;
 gap:10px;
-z-index:10;
+padding:10px;
+background:#111;
 }
 
 input{
 flex:1;
-padding:12px;
+padding:10px;
 border:none;
 outline:none;
 background:#222;
 color:#fff;
-border-radius:20px;
+border-radius:10px;
 }
 
 button{
+padding:10px;
 border:none;
 cursor:pointer;
-}
-
-/* BOTONES */
-.btn-plus{
-font-size:26px;
-background:none;
-color:#888;
-}
-
-.btn-send{
-background:var(--c1);
-color:#000;
-padding:10px 15px;
-border-radius:10px;
 }
 
 /* MENU */
@@ -134,120 +106,125 @@ width:100%;
 background:#111;
 display:grid;
 grid-template-columns:repeat(4,1fr);
-padding:15px;
+padding:10px;
 transition:0.3s;
-z-index:20;
 }
 
 #menu.show{
 bottom:60px;
 }
-
-.m-item{
-text-align:center;
-font-size:12px;
-}
 </style>
 </head>
 
-<body onload="start()">
+<body>
 
-<header>MIKASA IA</header>
-
-<div id="top-visual">
-<div class="orb"></div>
-</div>
+<div id="top-visual"><div class="orb"></div></div>
 
 <div id="chat"></div>
 
-<!-- MENU -->
 <div id="menu">
-<div class="m-item">📷<br>Cámara</div>
-<div class="m-item">🖼️<br>Galería</div>
-<div class="m-item">📂<br>Archivos</div>
-<div class="m-item">📍<br>Ubicación</div>
+<div>📷 Cámara</div>
+<div>🖼️ Galería</div>
+<div>📂 Archivos</div>
+<div>📍 Ubicación</div>
 </div>
 
-<!-- INPUT -->
 <div class="bar">
-<button class="btn-plus" onclick="toggleMenu()">+</button>
-<input id="in" placeholder="Escribe..." onkeypress="if(event.key==='Enter') send()">
-<button class="btn-send" onclick="send()">Enviar</button>
+<button onclick="toggleMenu()">+</button>
+<input id="in" placeholder="Escribe aquí...">
+<button onclick="send()">Enviar</button>
+<button onclick="listen()">🎤</button>
 </div>
 
 <script>
 
 const API_KEY = "TU_API_KEY_AQUI"; // ⚠️
 
-function start(){
-responder("Hola, soy Mikasa. ¿Qué vamos a crear hoy?");
-}
+// 🔹 INICIO
+window.onload = () => {
+  responder("Hola, soy Mikasa. ¿Qué vamos a crear hoy?");
+};
 
+// 🔹 MENÚ
 function toggleMenu(){
-document.getElementById("menu").classList.toggle("show");
+  document.getElementById("menu").classList.toggle("show");
 }
 
+// 🔹 ENVIAR MENSAJE
 async function send(){
-const input = document.getElementById("in");
-const msg = input.value.trim();
+  const input = document.getElementById("in");
+  const msg = input.value.trim();
 
-if(!msg) return;
+  if(!msg) return;
 
-render(msg,"u");
-input.value="";
-toggleMenu(false);
+  render(msg,"u");
+  input.value="";
 
-try{
+  try{
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        contents:[{
+          parts:[{
+            text: `Eres Mikasa IA. Responde claro, natural y corto.\nUsuario: ${msg}`
+          }]
+        }]
+      })
+    });
 
-const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body: JSON.stringify({
-contents:[{
-parts:[{
-text:`
-Eres Mikasa IA.
-Hablas amigable, un poco futurista y directa.
-Respondes corto pero útil.
+    const data = await res.json();
 
-Usuario: ${msg}
-`
-}]
-}]
-})
-});
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text 
+      || "No pude responder.";
 
-const data = await res.json();
+    responder(reply);
 
-const reply =
-data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-"No pude responder.";
-
-responder(reply);
-
-}catch(e){
-render("Error con la IA o la API.","i");
+  }catch(e){
+    render("Error de conexión con la IA.", "i");
+  }
 }
 
+// 🔹 VOZ
+function listen(){
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if(!SpeechRecognition){
+    alert("Tu navegador no soporta micrófono");
+    return;
+  }
+
+  const rec = new SpeechRecognition();
+  rec.lang = "es-ES";
+
+  rec.onresult = (e) => {
+    const texto = e.results[0][0].transcript;
+    document.getElementById("in").value = texto;
+    send();
+  };
+
+  rec.start();
 }
 
+// 🔹 RENDER
 function render(text,type){
-const chat = document.getElementById("chat");
+  const chat = document.getElementById("chat");
 
-const div = document.createElement("div");
-div.className = "m " + type;
-div.innerText = text;
+  const div = document.createElement("div");
+  div.className = "m " + type;
+  div.innerText = text;
 
-chat.appendChild(div);
-chat.scrollTop = chat.scrollHeight;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
 }
 
+// 🔹 RESPONDER + VOZ
 function responder(text){
-render(text,"i");
+  render(text,"i");
 
-const voz = new SpeechSynthesisUtterance(text);
-voz.lang="es-ES";
-speechSynthesis.speak(voz);
+  const voz = new SpeechSynthesisUtterance(text);
+  voz.lang = "es-ES";
+  speechSynthesis.speak(voz);
 }
 
 </script>
