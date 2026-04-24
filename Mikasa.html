@@ -3,222 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mikasa.ia | Sistema de Inteligencia</title>
+    <title>Mikasa.ia | Asistente Inteligente</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: #000; color: #fff; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        :root { --accent: #00fbff; --secondary: #ff007f; --bg: #0d0d0d; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; }
         
-        header { padding: 20px; text-align: center; color: #00fbff; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; font-size: 1.2rem; }
+        body { background: var(--bg); color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Contenedor Principal Visual (Cuerpo) */
-        #visual-box { 
-            flex: 1; display: flex; justify-content: center; align-items: center; 
-            position: relative; 
-            background: linear-gradient(to bottom, #000, #0a0a0a);
-        }
+        /* HEADER ESTÉTICO */
+        header { padding: 20px; text-align: center; font-weight: 800; letter-spacing: 4px; color: var(--accent); text-shadow: 0 0 15px rgba(0,251,255,0.3); }
 
-        /* --- NÚCLEO ESTILO SIRI --- */
-        .siri-orb {
-            width: 160px; height: 160px;
-            background: radial-gradient(circle at center, #ff007f 0%, #00fbff 100%);
+        /* CONTENEDOR VISUAL PRINCIPAL */
+        main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-between; position: relative; width: 100%; max-width: 800px; margin: 0 auto; padding: 20px; }
+
+        /* ESFERA ESTILO SIRI (MÁS DEFINIDA) */
+        .orb-container { position: relative; width: 180px; height: 180px; display: flex; align-items: center; justify-content: center; margin-top: 20px; }
+        .orb {
+            width: 130px; height: 130px;
+            background: radial-gradient(circle at 30% 30%, var(--accent), var(--secondary));
             border-radius: 50%;
-            /* Menos difuminado, más sólido */
-            filter: blur(10px); 
-            opacity: 1;
-            position: relative;
-            box-shadow: 0 0 30px rgba(0, 251, 255, 0.4), inset 0 0 15px rgba(255, 0, 127, 0.3);
-            transition: all 0.3s ease-out;
-            transform: scale(1);
+            box-shadow: 0 0 40px rgba(0, 251, 255, 0.4), inset -10px -10px 20px rgba(0,0,0,0.5);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; z-index: 2;
+        }
+        /* Brillo exterior */
+        .orb-glow {
+            position: absolute; width: 160%; height: 160%;
+            background: radial-gradient(circle, rgba(0,251,255,0.15) 0%, transparent 70%);
+            border-radius: 50%; z-index: 1; animation: glowPulse 4s infinite;
         }
 
-        /* Capa de ondas internas (para el efecto Siri) */
-        .siri-orb::before, .siri-orb::after {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            border-radius: 50%; background: inherit; filter: blur(5px); opacity: 0;
-            transition: 0.2s ease;
-        }
+        @keyframes glowPulse { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.1); } }
+        .talking .orb { transform: scale(1.15); box-shadow: 0 0 60px var(--secondary), 0 0 20px var(--accent); animation: siriWave 0.8s infinite ease-in-out; }
 
-        /* Animación cuando ESTÁ HABLANDO */
-        .siri-orb.talking {
-            filter: blur(3px); /* Se pone casi nítido */
-            transform: scale(1.1);
-            box-shadow: 0 0 50px rgba(255, 0, 127, 0.7), 0 0 80px rgba(0, 251, 255, 0.5);
-        }
+        @keyframes siriWave { 0%, 100% { border-radius: 50%; } 25% { border-radius: 45% 55% 50% 50%; } 75% { border-radius: 55% 45% 50% 50%; } }
 
-        .siri-orb.talking::before {
-            opacity: 0.8; animation: siriWave 0.6s infinite ease-out;
-        }
+        /* ÁREA DE CHAT ESTILO CHATGPT */
+        #chat { width: 100%; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; padding: 20px 0; scroll-behavior: smooth; }
+        .msg { max-width: 85%; padding: 14px 18px; border-radius: 18px; font-size: 15px; line-height: 1.5; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .user { align-self: flex-end; background: #222; color: #eee; border-bottom-right-radius: 4px; }
+        .ia { align-self: flex-start; background: rgba(0, 251, 255, 0.05); color: #fff; border: 1px solid rgba(0, 251, 255, 0.1); border-bottom-left-radius: 4px; }
 
-        .siri-orb.talking::after {
-            opacity: 0.6; animation: siriWave 0.6s infinite ease-out 0.2s;
-        }
-
-        /* Animación de ondas internas */
-        @keyframes siriWave {
-            0% { transform: scale(1); opacity: 0.8; filter: blur(5px); }
-            50% { transform: scale(1.3); opacity: 0.3; filter: blur(15px); }
-            100% { transform: scale(1.5); opacity: 0; filter: blur(25px); }
-        }
-
-        /* Animación de pulso cuando está en ESPERA */
-        @keyframes subtlePulse {
-            0% { transform: scale(1); box-shadow: 0 0 30px rgba(0, 251, 255, 0.4); }
-            50% { transform: scale(1.03); box-shadow: 0 0 40px rgba(0, 251, 255, 0.6); }
-            100% { transform: scale(1); box-shadow: 0 0 30px rgba(0, 251, 255, 0.4); }
-        }
-        .siri-orb:not(.talking) { animation: subtlePulse 4s infinite; }
-
-        /* --- FIN NÚCLEO --- */
-
-        /* Chat y Barra de Entrada (Superpuestos) */
-        #chat {
-            position: absolute; bottom: 85px; width: 100%; max-height: 250px;
-            overflow-y: auto; padding: 20px; 
-            display: flex; flex-direction: column; gap: 12px;
-            z-index: 2; /* Encima del núcleo */
-        }
-        .bubble { padding: 12px 18px; border-radius: 20px; max-width: 80%; font-size: 15px; }
-        .bubble.user { background: #00fbff15; color: #00fbff; align-self: flex-end; border: 1px solid #00fbff44; }
-        .bubble.ia { background: #ff007f15; color: #ff007f; align-self: flex-start; border: 1px solid #ff007f44; }
-
-        /* Barra de entrada con tus iconos */
-        .input-bar {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            padding: 15px; background: rgba(10, 10, 10, 0.95); 
-            display: flex; gap: 10px; align-items: center;
-            border-top: 1px solid #222; z-index: 10; padding-bottom: 25px;
+        /* BARRA DE ENTRADA MODERNA */
+        .input-wrapper { width: 100%; padding-bottom: 30px; padding-top: 10px; }
+        .input-card {
+            background: #1a1a1a; border: 1px solid #333; border-radius: 30px;
+            display: flex; align-items: center; padding: 6px 15px; gap: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         
-        .icon-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .action-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .plus { font-size: 28px; color: #888; }
+        .mic { width: 42px; height: 42px; border: 1px solid #444; border-radius: 50%; color: #fff; font-size: 20px; }
+        .send { color: var(--accent); font-size: 24px; padding-right: 5px; }
+        .action-btn:hover { opacity: 0.7; transform: scale(1.05); }
 
-        /* Icono Menú Mas (+) */
-        .plus-btn { color: #fff; font-size: 30px; width: 35px; }
+        input { flex: 1; background: transparent; border: none; color: #fff; padding: 12px; font-size: 16px; outline: none; }
 
-        /* Icono Micrófono Circular */
-        .mic-btn { border: 1px solid #444; border-radius: 50%; width: 50px; height: 50px; }
-        .mic-icon { color: #fff; font-size: 26px; }
-
-        /* Icono Enviar Flecha */
-        .send-btn { color: #00fbff; font-size: 30px; width: 40px; }
-
-        input {
-            flex: 1; background: #1a1a1a; border: 1px solid #333; padding: 14px 18px; 
-            border-radius: 25px; color: #fff; outline: none; font-size: 16px;
-        }
-
-        /* Menú de funciones */
+        /* MENÚ FLOTANTE */
         #menu {
-            position: fixed; bottom: -100%; left: 0; width: 100%; background: #111;
-            padding: 20px; display: grid; grid-template-columns: repeat(4, 1fr);
-            gap: 15px; transition: 0.4s ease; border-top: 1px solid #333; z-index: 100;
+            position: absolute; bottom: 100px; left: 20px; right: 20px; background: #1a1a1a;
+            border: 1px solid #333; border-radius: 20px; padding: 20px; display: none;
+            grid-template-columns: repeat(4, 1fr); gap: 15px; z-index: 100;
         }
-        #menu.open { bottom: 85px; }
-        .menu-item { text-align: center; color: #fff; font-size: 11px; }
-        .menu-icon { font-size: 24px; display: block; margin-bottom: 5px; }
+        #menu.show { display: grid; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .m-item { text-align: center; font-size: 11px; color: #aaa; }
+        .m-icon { font-size: 24px; display: block; margin-bottom: 5px; color: #fff; }
+
+        /* RESPONSIVIDAD PARA PC */
+        @media (min-width: 1024px) {
+            .orb-container { width: 220px; height: 220px; }
+            .orb { width: 160px; height: 160px; }
+            #chat { max-height: 400px; }
+        }
     </style>
 </head>
 <body onclick="iniciar()">
 
     <header>MIKASA.IA</header>
-    
-    <div id="visual-box">
-        <div class="siri-orb" id="orb"></div>
+
+    <main>
+        <div class="orb-container" id="orbBox">
+            <div class="orb-glow"></div>
+            <div class="orb" id="orb"></div>
+        </div>
+
         <div id="chat"></div>
-    </div>
 
-    <div id="menu">
-        <div class="menu-item"><span class="menu-icon">📷</span>Cámara</div>
-        <div class="menu-item"><span class="menu-icon">🖼️</span>Galería</div>
-        <div class="menu-item"><span class="menu-icon">📂</span>Archivos</div>
-        <div class="menu-item"><span class="menu-icon">📍</span>Ubicación</div>
-    </div>
+        <div id="menu">
+            <div class="m-item"><span class="m-icon">📷</span>Cámara</div>
+            <div class="m-item"><span class="m-icon">🖼️</span>Fotos</div>
+            <div class="m-item"><span class="m-icon">📂</span>Docs</div>
+            <div class="m-item"><span class="m-icon">📍</span>Lugar</div>
+        </div>
 
-    <div class="input-bar">
-        <button class="icon-btn plus-btn" onclick="toggleMenu()">+</button>
-        <input type="text" id="userInput" placeholder="Escribe aquí..." onkeypress="if(event.key==='Enter') enviar()">
-        <button class="icon-btn mic-btn" onclick="escuchar()"><span class="mic-icon">🎤</span></button>
-        <button class="icon-btn send-btn" onclick="enviar()">➤</button>
-    </div>
+        <div class="input-wrapper">
+            <div class="input-card">
+                <button class="action-btn plus" onclick="toggleMenu()">+</button>
+                <input type="text" id="userInput" placeholder="Pregunta lo que quieras..." onkeypress="if(event.key==='Enter') enviar()">
+                <button class="action-btn mic" onclick="escuchar()">🎤</button>
+                <button class="action-btn send" onclick="enviar()">➤</button>
+            </div>
+        </div>
+    </main>
 
     <script>
         const p1 = "AIzaSyAjIJqYxSMCqP1r3";
         const p2 = "-1g8WA5hArNs_zZt18";
-        const API_KEY = p1 + p2; 
+        const API_KEY = p1 + p2;
 
         let activo = false;
-        let nombreUsuario = localStorage.getItem('user_name'); 
+        let nombre = localStorage.getItem('user_name') || "Armando";
 
-        function toggleMenu() { document.getElementById('menu').classList.toggle('open'); }
+        function toggleMenu() { document.getElementById('menu').classList.toggle('show'); }
 
         function iniciar() {
             if(activo) return;
             activo = true;
-            if(!nombreUsuario) {
-                responder("Sistemas activos. No detecto un perfil registrado. ¿Cómo debo llamarte?");
-            } else {
-                responder(`Hola Armando, sistemas listos. ¿Qué vamos a crear hoy?`);
-            }
+            responder(`Hola ${nombre}, sistemas listos. ¿En qué puedo ayudarte hoy?`);
         }
 
         async function enviar() {
             const input = document.getElementById('userInput');
-            const texto = input.value.trim();
-            if(!texto) return;
+            const msg = input.value.trim();
+            if(!msg) return;
 
-            renderMsg(texto, 'user');
+            render(msg, 'user');
             input.value = "";
-            document.getElementById('menu').classList.remove('open');
-
-            if(!nombreUsuario && texto.toLowerCase().includes("armando")) {
-                nombreUsuario = "Armando";
-                localStorage.setItem('user_name', nombreUsuario);
-                return responder("Registro completado. Bienvenido, Armando. ¿En qué puedo ayudarte?");
-            }
+            document.getElementById('menu').classList.remove('show');
 
             try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                // Configuración de la IA para que sea avanzada
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+                const res = await fetch(url, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: "Actúa como Mikasa, una IA brillante y carismática. Eres la asistente de Armando Guzmán, quien estudia Marketing Digital. Responde de forma completa: " + texto }] }] })
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: `Eres Mikasa, una IA carismática y experta en Marketing Digital. Tu usuario es Armando Guzmán. Sé directo, inteligente y amable. Pregunta: ${msg}` }] }]
+                    })
                 });
 
                 const data = await res.json();
-                if(data.candidates) {
+                if(data.candidates && data.candidates[0].content) {
                     responder(data.candidates[0].content.parts[0].text);
                 } else { throw new Error(); }
 
             } catch (e) {
-                responder("Parece que hubo un error con la conexión. ¿Me repites?");
+                console.error(e);
+                responder("Lo siento Armando, mi conexión ha parpadeado. ¿Puedes repetirlo?");
             }
         }
 
         function escuchar() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) return;
-            const rec = new SpeechRecognition();
-            rec.lang = 'es-ES';
-            rec.onresult = (e) => {
-                document.getElementById('userInput').value = e.results[0][0].transcript;
-                enviar();
-            };
-            rec.start();
+            const Reco = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if(!Reco) return;
+            const r = new Reco();
+            r.lang = 'es-ES';
+            r.onresult = (e) => { document.getElementById('userInput').value = e.results[0][0].transcript; enviar(); };
+            r.start();
         }
 
         function responder(t) {
-            renderMsg(t, 'ia');
+            render(t, 'ia');
             window.speechSynthesis.cancel();
             const u = new SpeechSynthesisUtterance(t);
-            u.lang = 'es-MX';
-            u.onstart = () => document.getElementById('orb').classList.add('talking');
-            u.onend = () => document.getElementById('orb').classList.remove('talking');
+            u.lang = 'es-MX'; u.rate = 1.1;
+            u.onstart = () => document.getElementById('orbBox').classList.add('talking');
+            u.onend = () => document.getElementById('orbBox').classList.remove('talking');
             window.speechSynthesis.speak(u);
         }
 
-        function renderMsg(t, c) {
+        function render(t, c) {
             const h = document.getElementById('chat');
             const d = document.createElement('div');
-            d.className = `bubble ${c}`;
-            d.innerText = t;
+            d.className = `msg ${c}`; d.innerText = t;
             h.appendChild(d);
             h.scrollTop = h.scrollHeight;
         }
