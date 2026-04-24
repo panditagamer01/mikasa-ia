@@ -6,9 +6,14 @@
 <title>Mikasa IA</title>
 
 <style>
-:root { --c1:#00fbff; --c2:#ff007f; }
+:root { --c1:#00fbff; }
 
-*{ margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:sans-serif;
+}
 
 body{
 background:#000;
@@ -18,7 +23,7 @@ display:flex;
 flex-direction:column;
 }
 
-/* ORB */
+/* 🔥 ORB (YA NO BLOQUEA) */
 #top-visual{
 position:fixed;
 width:100%;
@@ -27,14 +32,15 @@ display:flex;
 justify-content:center;
 align-items:center;
 pointer-events:none;
+z-index:0;
 }
 
 .orb{
 width:120px;
 height:120px;
 border-radius:50%;
-background: radial-gradient(circle at 30% 30%, var(--c1), var(--c2));
-filter: blur(5px);
+background: radial-gradient(circle, #00fbff, #ff007f);
+filter: blur(6px);
 animation:pulse 4s infinite;
 }
 
@@ -44,7 +50,7 @@ animation:pulse 4s infinite;
 100%{transform:scale(1);}
 }
 
-/* CHAT */
+/* 🔥 CHAT ENCIMA */
 #chat{
 flex:1;
 overflow:auto;
@@ -52,7 +58,8 @@ padding:20px;
 display:flex;
 flex-direction:column;
 gap:10px;
-z-index:2;
+z-index:999;
+position:relative;
 }
 
 .m{
@@ -61,17 +68,10 @@ padding:10px;
 border-radius:10px;
 }
 
-.u{
-align-self:flex-end;
-background:#222;
-}
+.u{ align-self:flex-end; background:#222; }
+.i{ align-self:flex-start; background:#111; }
 
-.i{
-align-self:flex-start;
-background:#111;
-}
-
-/* INPUT */
+/* 🔥 INPUT (ARREGLADO) */
 .bar{
 position:fixed;
 bottom:0;
@@ -79,7 +79,9 @@ width:100%;
 display:flex;
 gap:10px;
 padding:10px;
-background:#111;
+background:#000;
+border-top:1px solid #222;
+z-index:9999; /* 🔥 CLAVE */
 }
 
 input{
@@ -87,14 +89,18 @@ flex:1;
 padding:10px;
 border:none;
 outline:none;
-background:#222;
+background:#111;
 color:#fff;
 border-radius:10px;
 }
 
+/* BOTONES OSCUROS */
 button{
+background:#000;
+color:var(--c1);
+border:1px solid #222;
+border-radius:10px;
 padding:10px;
-border:none;
 cursor:pointer;
 }
 
@@ -103,11 +109,13 @@ cursor:pointer;
 position:fixed;
 bottom:-200px;
 width:100%;
-background:#111;
+background:#000;
 display:grid;
 grid-template-columns:repeat(4,1fr);
 padding:10px;
 transition:0.3s;
+border-top:1px solid #222;
+z-index:5000;
 }
 
 #menu.show{
@@ -118,10 +126,13 @@ bottom:60px;
 
 <body>
 
+<!-- ORB -->
 <div id="top-visual"><div class="orb"></div></div>
 
+<!-- CHAT -->
 <div id="chat"></div>
 
+<!-- MENU -->
 <div id="menu">
 <div>📷 Cámara</div>
 <div>🖼️ Galería</div>
@@ -129,9 +140,11 @@ bottom:60px;
 <div>📍 Ubicación</div>
 </div>
 
+<!-- INPUT -->
 <div class="bar">
 <button onclick="toggleMenu()">+</button>
-<input id="in" placeholder="Escribe aquí...">
+<input id="in" placeholder="Escribe aquí..."
+onkeydown="if(event.key==='Enter'){event.preventDefault();send();}">
 <button onclick="send()">Enviar</button>
 <button onclick="listen()">🎤</button>
 </div>
@@ -140,34 +153,38 @@ bottom:60px;
 
 const API_KEY = "TU_API_KEY_AQUI"; // ⚠️
 
-// 🔹 INICIO
+// MENSAJE INICIAL
 window.onload = () => {
   responder("Hola, soy Mikasa. ¿Qué vamos a crear hoy?");
 };
 
-// 🔹 MENÚ
+// MENU +
 function toggleMenu(){
   document.getElementById("menu").classList.toggle("show");
 }
 
-// 🔹 ENVIAR MENSAJE
+// ENVIAR
 async function send(){
   const input = document.getElementById("in");
+
+  if(!input) return;
+
   const msg = input.value.trim();
 
-  if(!msg) return;
+  if(msg === "") return;
 
   render(msg,"u");
-  input.value="";
+  input.value = "";
 
   try{
+
     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body: JSON.stringify({
         contents:[{
           parts:[{
-            text: `Eres Mikasa IA. Responde claro, natural y corto.\nUsuario: ${msg}`
+            text:`Eres Mikasa IA. Responde natural, clara y útil.\nUsuario: ${msg}`
           }]
         }]
       })
@@ -175,8 +192,9 @@ async function send(){
 
     const data = await res.json();
 
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text 
-      || "No pude responder.";
+    const reply =
+    data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+    "No pude responder.";
 
     responder(reply);
 
@@ -185,7 +203,7 @@ async function send(){
   }
 }
 
-// 🔹 VOZ
+// MICRÓFONO
 function listen(){
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -200,13 +218,12 @@ function listen(){
   rec.onresult = (e) => {
     const texto = e.results[0][0].transcript;
     document.getElementById("in").value = texto;
-    send();
   };
 
   rec.start();
 }
 
-// 🔹 RENDER
+// RENDER
 function render(text,type){
   const chat = document.getElementById("chat");
 
@@ -218,12 +235,14 @@ function render(text,type){
   chat.scrollTop = chat.scrollHeight;
 }
 
-// 🔹 RESPONDER + VOZ
+// VOZ
 function responder(text){
   render(text,"i");
 
   const voz = new SpeechSynthesisUtterance(text);
   voz.lang = "es-ES";
+
+  speechSynthesis.cancel();
   speechSynthesis.speak(voz);
 }
 
