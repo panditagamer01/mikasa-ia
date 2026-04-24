@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mikasa.ia - Universal</title>
+    <style>
+        :root { --accent: #ff0077; --neon: #00fbff; --bg: #000; }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* Logo arriba a la derecha multicolor */
+        header { position: absolute; top: 20px; right: 20px; z-index: 100; }
+        .logo { font-size: 1.1rem; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; 
+                background: linear-gradient(135deg, #00fbff, #7a00ff, #ff007f); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        /* Círculo animado */
+        #visual-box { flex: 0 0 35vh; display: flex; justify-content: center; align-items: center; padding-top: 40px; }
+        .nebula { width: 140px; height: 140px; border-radius: 50%; 
+                  background: linear-gradient(45deg, #00fbff, #7a00ff, #ff007f, #00fbff); 
+                  background-size: 400% 400%; animation: flow 6s infinite linear; 
+                  box-shadow: 0 0 50px rgba(122, 0, 255, 0.4); transition: 0.4s; }
+        
+        .talking .nebula { animation: flow 2s infinite linear, beat 0.5s infinite alternate; 
+                           box-shadow: 0 0 80px rgba(255, 0, 119, 0.7); transform: scale(1.1); }
+
+        @keyframes flow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes beat { from { transform: scale(1.1); } to { transform: scale(1.25); } }
+
+        /* Chat */
+        #chat { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; padding-bottom: 90px; }
+        .bubble { padding: 14px 18px; border-radius: 20px; max-width: 80%; font-size: 1rem; }
+        .ia { background: #1a1a1a; align-self: flex-start; border-left: 4px solid var(--accent); }
+        .user { background: rgba(0, 251, 255, 0.15); align-self: flex-end; color: var(--neon); border-right: 4px solid var(--neon); }
+
+        /* Controles Multimedia */
+        .input-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #0a0a0a; border-top: 1px solid #222; padding: 12px; display: flex; align-items: center; gap: 10px; z-index: 200; }
+        .btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #555; }
+        input { flex: 1; background: #151515; border: 1px solid #333; color: white; padding: 12px 20px; border-radius: 30px; outline: none; }
+
+        /* Menú Multimedia inferior */
+        #menu { position: fixed; bottom: -100%; left: 0; width: 100%; background: #111; padding: 25px; 
+                display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; transition: 0.4s; 
+                border-radius: 25px 25px 0 0; border-top: 1px solid #333; z-index: 300; }
+        #menu.open { bottom: 0; }
+        .opt-icon { font-size: 1.8rem; background: linear-gradient(135deg, #00fbff, #ff007f); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    </style>
+</head>
+<body onclick="iniciar()">
+
+    <header><div class="logo">mikasa.ia</div></header>
+    <div id="visual-box"><div class="nebula" id="orb"></div></div>
+    <div id="chat"></div>
+
+    <div id="menu">
+        <div style="text-align:center"><span class="opt-icon">📷</span><br><small>Cámara</small></div>
+        <div style="text-align:center"><span class="opt-icon">🖼️</span><br><small>Galería</small></div>
+        <div style="text-align:center"><span class="opt-icon">📁</span><br><small>Archivos</small></div>
+        <div style="text-align:center"><span class="opt-icon">📍</span><br><small>Ubicación</small></div>
+    </div>
+
+    <div class="input-bar">
+        <button class="btn" onclick="document.getElementById('menu').classList.toggle('open')">➕</button>
+        <input type="text" id="userInput" placeholder="Escribe algo..." onkeypress="if(event.key==='Enter') enviar()">
+        <button class="btn" id="mic-btn" onclick="escuchar()">🎤</button>
+    </div>
+
+    <script>
+        const API_KEY = "AIzaSyBOUEra88c1siVkvY5o0Oky2f9Nw9Bla60"; 
+        let activo = false;
+
+        function iniciar() {
+            if(activo) return;
+            activo = true;
+            responder("Sistemas universales activos. ¿Qué vamos a crear hoy?");
+        }
+
+        async function enviar() {
+            const input = document.getElementById('userInput');
+            const texto = input.value.trim();
+            if(!texto) return;
+
+            renderMsg(texto, 'user');
+            input.value = "";
+            document.getElementById('menu').classList.remove('open');
+
+            try {
+                // Ruta optimizada para evitar el error 'model not found'
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: texto }] }] })
+                });
+
+                const data = await res.json();
+                responder(data.candidates[0].content.parts[0].text);
+            } catch (e) {
+                responder("Error de conexión. Para usar Mikasa en cualquier móvil, debes subir este archivo a un hosting como GitHub Pages o Vercel.");
+            }
+        }
+
+        function escuchar() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) return responder("Tu navegador no soporta voz.");
+            const rec = new SpeechRecognition();
+            rec.lang = 'es-ES';
+            rec.onresult = (e) => { document.getElementById('userInput').value = e.results[0][0].transcript; enviar(); };
+            rec.start();
+        }
+
+        function responder(t) {
+            renderMsg(t, 'ia');
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(t);
+            u.onstart = () => document.getElementById('visual-box').classList.add('talking');
+            u.onend = () => document.getElementById('visual-box').classList.remove('talking');
+            window.speechSynthesis.speak(u);
+        }
+
+        function renderMsg(t, c) {
+            const h = document.getElementById('chat');
+            const d = document.createElement('div');
+            d.className = `bubble ${c}`;
+            d.innerText = t;
+            h.appendChild(d);
+            h.scrollTop = h.scrollHeight;
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
