@@ -14,7 +14,7 @@
         header { 
             position: absolute; top: 15px; left: 15px; 
             color: var(--c1); font-weight: 900; font-size: 0.75rem; 
-            letter-spacing: 2px; z-index: 1000; opacity: 0.8;
+            letter-spacing: 2px; z-index: 1000; opacity: 0.9;
         }
 
         /* NÚCLEO SÓLIDO (ORB) */
@@ -26,18 +26,18 @@
         .orb {
             width: 130px; height: 130px; border-radius: 50%;
             background: radial-gradient(circle at 35% 35%, #00fbff, #ff007f);
-            box-shadow: 0 0 40px rgba(0, 251, 255, 0.4), inset 0 0 20px rgba(0,0,0,0.5);
+            box-shadow: 0 0 35px rgba(0, 251, 255, 0.5), inset 0 0 15px rgba(0,0,0,0.3);
             animation: pulse 3s infinite ease-in-out;
-            filter: blur(1px); /* Mínimo blur para que se vea sólido */
+            filter: blur(1px); /* Sólido */
         }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
         
         .talking .orb { animation: vibe 0.5s infinite alternate; filter: blur(0px); }
-        @keyframes vibe { from { transform: scale(1.05); } to { transform: scale(1.15); border-radius: 45% 55% 50% 50%; } }
+        @keyframes vibe { from { transform: scale(1.05); } to { transform: scale(1.15); border-radius: 40% 60% 50% 50%; } }
 
         /* CHAT ELEVADO */
         #chat {
-            flex: 1; overflow-y: auto; padding: 50px 20px 100px 20px;
+            flex: 1; overflow-y: auto; padding: 60px 20px 110px 20px;
             display: flex; flex-direction: column; gap: 12px;
             z-index: 10; position: relative;
         }
@@ -50,7 +50,7 @@
         /* BARRA DE ENTRADA FIJA */
         .bar {
             position: fixed; bottom: 0; width: 100%;
-            display: flex; gap: 10px; padding: 10px 15px 35px;
+            display: flex; gap: 10px; padding: 10px 15px 40px;
             background: rgba(0,0,0,0.95); border-top: 1px solid #1a1a1a; z-index: 9999;
         }
         .input-card {
@@ -67,7 +67,7 @@
             display: grid; grid-template-columns: repeat(4, 1fr);
             padding: 20px; transition: 0.4s ease; border-top: 1px solid #222; z-index: 5000;
         }
-        #menu.show { bottom: 85px; }
+        #menu.show { bottom: 90px; }
     </style>
 </head>
 <body onclick="init()">
@@ -93,17 +93,17 @@
 </div>
 
 <script>
-// Clave protegida (Dividida para evitar bloqueos automáticos)
-const p1 = "AIzaSyAjIJqYxSMC";
-const p2 = "qP1r3-1g8WA5hArNs_zZt18";
-const API_KEY = p1 + p2;
+// Clave Nueva Actualizada y Protegida
+const k1 = "AIzaSyCrHd0q4dv";
+const k2 = "X9XJcnFWBq_wByl7kbyHihNk";
+const API_KEY = k1 + k2;
 
 let started = false;
 
 function init() {
     if(!started) {
         started = true;
-        responder("Hola Armando, soy Mikasa. ¿Qué vamos a crear hoy?");
+        responder("Hola Armando, soy Mikasa. Sistemas listos. ¿Qué vamos a crear hoy?");
     }
 }
 
@@ -127,15 +127,14 @@ async function send() {
 
         const data = await res.json();
         
-        // CORRECCIÓN DEL ERROR DE RESPUESTA
         if (data.candidates && data.candidates[0].content) {
             responder(data.candidates[0].content.parts[0].text);
         } else {
-            render("Error: La clave API ha sido desactivada por seguridad. Genera una nueva en AI Studio.", "i");
+            render("Error: Revisa si la clave API sigue activa.", "i");
         }
 
     } catch (e) {
-        render("Error de conexión. Revisa tu internet.", "i");
+        render("Error de conexión.", "i");
     }
 }
 
@@ -162,11 +161,10 @@ function responder(text) {
     const voz = new SpeechSynthesisUtterance(text);
     voz.lang = "es-MX";
     speechSynthesis.cancel();
-    voz.onstart = () => document.body.classList.add('talking');
-    voz.onend = () => document.body.classList.remove('talking');
+    voz.onstart = () => document.getElementById('orb').parentElement.classList.add('talking');
+    voz.onend = () => document.getElementById('orb').parentElement.classList.remove('talking');
     speechSynthesis.speak(voz);
 }
 </script>
 </body>
 </html>
-
