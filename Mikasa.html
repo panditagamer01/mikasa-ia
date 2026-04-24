@@ -8,52 +8,105 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: #000; color: #fff; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
         
-        header { padding: 15px; text-align: center; color: #00fbff; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; font-size: 1.2rem; }
+        header { padding: 20px; text-align: center; color: #00fbff; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; font-size: 1.2rem; }
 
-        /* Contenedor del Círculo (Nebulosa) */
-        #visual-box { flex: 0.8; display: flex; justify-content: center; align-items: center; position: relative; }
-        .nebula {
-            width: 220px; height: 220px;
-            background: radial-gradient(circle, #ff007f, #00fbff);
+        /* Contenedor Principal Visual (Cuerpo) */
+        #visual-box { 
+            flex: 1; display: flex; justify-content: center; align-items: center; 
+            position: relative; 
+            background: linear-gradient(to bottom, #000, #0a0a0a);
+        }
+
+        /* --- NÚCLEO ESTILO SIRI --- */
+        .siri-orb {
+            width: 160px; height: 160px;
+            background: radial-gradient(circle at center, #ff007f 0%, #00fbff 100%);
             border-radius: 50%;
-            filter: blur(25px);
-            opacity: 0.7;
-            transition: all 0.3s ease;
-            animation: pulse 4s infinite;
-            box-shadow: 0 0 50px rgba(0, 251, 255, 0.4);
+            /* Menos difuminado, más sólido */
+            filter: blur(10px); 
+            opacity: 1;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 251, 255, 0.4), inset 0 0 15px rgba(255, 0, 127, 0.3);
+            transition: all 0.3s ease-out;
+            transform: scale(1);
         }
-        .nebula.talking { transform: scale(1.3); filter: blur(15px); opacity: 1; box-shadow: 0 0 70px rgba(255, 0, 127, 0.6); }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
-        /* Chat más arriba y mejor organizado */
-        #chat {
-            flex: 1.2; width: 100%; overflow-y: auto; padding: 20px; 
-            display: flex; flex-direction: column; gap: 12px;
-            background: linear-gradient(to top, #000, transparent);
+        /* Capa de ondas internas (para el efecto Siri) */
+        .siri-orb::before, .siri-orb::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            border-radius: 50%; background: inherit; filter: blur(5px); opacity: 0;
+            transition: 0.2s ease;
         }
-        .bubble { padding: 12px 18px; border-radius: 20px; max-width: 85%; font-size: 15px; line-height: 1.4; }
+
+        /* Animación cuando ESTÁ HABLANDO */
+        .siri-orb.talking {
+            filter: blur(3px); /* Se pone casi nítido */
+            transform: scale(1.1);
+            box-shadow: 0 0 50px rgba(255, 0, 127, 0.7), 0 0 80px rgba(0, 251, 255, 0.5);
+        }
+
+        .siri-orb.talking::before {
+            opacity: 0.8; animation: siriWave 0.6s infinite ease-out;
+        }
+
+        .siri-orb.talking::after {
+            opacity: 0.6; animation: siriWave 0.6s infinite ease-out 0.2s;
+        }
+
+        /* Animación de ondas internas */
+        @keyframes siriWave {
+            0% { transform: scale(1); opacity: 0.8; filter: blur(5px); }
+            50% { transform: scale(1.3); opacity: 0.3; filter: blur(15px); }
+            100% { transform: scale(1.5); opacity: 0; filter: blur(25px); }
+        }
+
+        /* Animación de pulso cuando está en ESPERA */
+        @keyframes subtlePulse {
+            0% { transform: scale(1); box-shadow: 0 0 30px rgba(0, 251, 255, 0.4); }
+            50% { transform: scale(1.03); box-shadow: 0 0 40px rgba(0, 251, 255, 0.6); }
+            100% { transform: scale(1); box-shadow: 0 0 30px rgba(0, 251, 255, 0.4); }
+        }
+        .siri-orb:not(.talking) { animation: subtlePulse 4s infinite; }
+
+        /* --- FIN NÚCLEO --- */
+
+        /* Chat y Barra de Entrada (Superpuestos) */
+        #chat {
+            position: absolute; bottom: 85px; width: 100%; max-height: 250px;
+            overflow-y: auto; padding: 20px; 
+            display: flex; flex-direction: column; gap: 12px;
+            z-index: 2; /* Encima del núcleo */
+        }
+        .bubble { padding: 12px 18px; border-radius: 20px; max-width: 80%; font-size: 15px; }
         .bubble.user { background: #00fbff15; color: #00fbff; align-self: flex-end; border: 1px solid #00fbff44; }
         .bubble.ia { background: #ff007f15; color: #ff007f; align-self: flex-start; border: 1px solid #ff007f44; }
 
         /* Barra de entrada con tus iconos */
         .input-bar {
-            padding: 15px; background: #0a0a0a; display: flex; gap: 12px; align-items: center;
-            border-top: 1px solid #222; padding-bottom: 25px;
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            padding: 15px; background: rgba(10, 10, 10, 0.95); 
+            display: flex; gap: 10px; align-items: center;
+            border-top: 1px solid #222; z-index: 10; padding-bottom: 25px;
         }
-        .icon-btn {
-            background: none; border: none; color: #fff; font-size: 24px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
-        }
-        .plus-btn { color: #888; font-size: 30px; font-weight: 300; }
-        .mic-btn { color: #fff; border: 1px solid #333; border-radius: 50%; padding: 5px; }
-        .send-btn { color: #fff; font-size: 26px; transform: rotate(-10deg); }
+        
+        .icon-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        /* Icono Menú Mas (+) */
+        .plus-btn { color: #fff; font-size: 30px; width: 35px; }
+
+        /* Icono Micrófono Circular */
+        .mic-btn { border: 1px solid #444; border-radius: 50%; width: 50px; height: 50px; }
+        .mic-icon { color: #fff; font-size: 26px; }
+
+        /* Icono Enviar Flecha */
+        .send-btn { color: #00fbff; font-size: 30px; width: 40px; }
 
         input {
-            flex: 1; background: #1a1a1a; border: none; padding: 12px 18px; 
+            flex: 1; background: #1a1a1a; border: 1px solid #333; padding: 14px 18px; 
             border-radius: 25px; color: #fff; outline: none; font-size: 16px;
         }
 
-        /* Menú de funciones oculto */
+        /* Menú de funciones */
         #menu {
             position: fixed; bottom: -100%; left: 0; width: 100%; background: #111;
             padding: 20px; display: grid; grid-template-columns: repeat(4, 1fr);
@@ -69,10 +122,9 @@
     <header>MIKASA.IA</header>
     
     <div id="visual-box">
-        <div class="nebula" id="orb"></div>
+        <div class="siri-orb" id="orb"></div>
+        <div id="chat"></div>
     </div>
-
-    <div id="chat"></div>
 
     <div id="menu">
         <div class="menu-item"><span class="menu-icon">📷</span>Cámara</div>
@@ -84,7 +136,7 @@
     <div class="input-bar">
         <button class="icon-btn plus-btn" onclick="toggleMenu()">+</button>
         <input type="text" id="userInput" placeholder="Escribe aquí..." onkeypress="if(event.key==='Enter') enviar()">
-        <button class="icon-btn mic-btn" onclick="escuchar()">🎤</button>
+        <button class="icon-btn mic-btn" onclick="escuchar()"><span class="mic-icon">🎤</span></button>
         <button class="icon-btn send-btn" onclick="enviar()">➤</button>
     </div>
 
@@ -117,33 +169,26 @@
             input.value = "";
             document.getElementById('menu').classList.remove('open');
 
-            if(!nombreUsuario && (texto.toLowerCase().includes("soy") || texto.length < 20)) {
-                let posibleNombre = texto.toLowerCase().replace("soy ", "").trim();
-                if(posibleNombre === "armando") {
-                    nombreUsuario = "Armando";
-                    localStorage.setItem('user_name', nombreUsuario);
-                    return responder(`Registro completado. Bienvenido, Armando. ¿En qué puedo ayudarte?`);
-                }
+            if(!nombreUsuario && texto.toLowerCase().includes("armando")) {
+                nombreUsuario = "Armando";
+                localStorage.setItem('user_name', nombreUsuario);
+                return responder("Registro completado. Bienvenido, Armando. ¿En qué puedo ayudarte?");
             }
 
             try {
-                // Instrucción para que sea inteligente como ChatGPT/Gemini
-                const promptFinal = `Actúa como Mikasa, una IA extremadamente inteligente, carismática y útil. Eres la asistente personal de Armando. Armando tiene 20 años y estudia Marketing Digital. Responde de forma detallada y profesional a esto: ${texto}`;
-
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: promptFinal }] }] })
+                    body: JSON.stringify({ contents: [{ parts: [{ text: "Actúa como Mikasa, una IA brillante y carismática. Eres la asistente de Armando Guzmán, quien estudia Marketing Digital. Responde de forma completa: " + texto }] }] })
                 });
 
                 const data = await res.json();
                 if(data.candidates) {
-                    const respuestaIA = data.candidates[0].content.parts[0].text;
-                    responder(respuestaIA);
+                    responder(data.candidates[0].content.parts[0].text);
                 } else { throw new Error(); }
 
             } catch (e) {
-                responder("Lo siento, parece que hay un problema con la señal. ¿Podrías repetirlo?");
+                responder("Parece que hubo un error con la conexión. ¿Me repites?");
             }
         }
 
