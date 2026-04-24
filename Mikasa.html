@@ -5,114 +5,111 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mikasa.ia</title>
     <style>
-        :root { --c1: #00fbff; --c2: #ff007f; --bg: #000; }
+        :root { --glow: #00fbff; --vibe: #ff007f; --bg: #000; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg); color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Esfera Siri Centralizada */
-        #top { flex: 0 0 160px; display: flex; justify-content: center; align-items: center; position: relative; }
+        /* Esfera Siri */
+        #visual-top { flex: 0 0 100px; display: flex; justify-content: center; align-items: center; padding-top: 10px; }
         .orb {
-            width: 110px; height: 110px;
-            background: radial-gradient(circle at 30% 30%, var(--c1), var(--c2));
-            border-radius: 50%; filter: blur(2px);
-            box-shadow: 0 0 30px rgba(0,251,255,0.4);
-            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 75px; height: 75px;
+            background: radial-gradient(circle at 30% 30%, var(--glow), var(--vibe));
+            border-radius: 50%; filter: blur(1px);
+            box-shadow: 0 0 20px rgba(0,251,255,0.4);
+            transition: 0.4s ease;
         }
-        .talking .orb { animation: wave 0.7s infinite alternate; box-shadow: 0 0 60px var(--c2); filter: blur(0px); }
-        @keyframes wave { from { transform: scale(1); border-radius: 50%; } to { transform: scale(1.15); border-radius: 40% 60% 45% 55%; } }
+        .active .orb { animation: pulse 0.8s infinite alternate; box-shadow: 0 0 45px var(--vibe); }
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
 
-        /* Chat Estilo Moderno */
-        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
-        .m { max-width: 85%; padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; animation: in 0.3s ease; }
-        @keyframes in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .u { align-self: flex-end; background: #222; border-bottom-right-radius: 4px; }
-        .i { align-self: flex-start; background: rgba(0, 251, 255, 0.1); border: 1px solid rgba(0, 251, 255, 0.2); border-bottom-left-radius: 4px; }
+        /* Chat - Subido y con más margen inferior */
+        #chat-container { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 20px 20px 10px 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px;
+            margin-bottom: 5px; /* Pequeño espacio extra antes de la barra */
+        }
+        .msg { max-width: 80%; padding: 12px 16px; border-radius: 20px; font-size: 15px; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .user { align-self: flex-end; background: #1a1a1a; border-bottom-right-radius: 4px; border: 1px solid #333; }
+        .ia { align-self: flex-start; background: rgba(0, 251, 255, 0.08); border: 1px solid rgba(0, 251, 255, 0.15); border-bottom-left-radius: 4px; }
 
-        /* Barra de Entrada Blindada */
-        .bar { padding: 15px 15px 35px; background: #000; border-top: 1px solid #222; }
-        .card { background: #111; border: 1px solid #333; border-radius: 30px; display: flex; align-items: center; padding: 5px 15px; }
-        input { flex: 1; background: transparent; border: none; color: #fff; padding: 12px; outline: none; font-size: 16px; }
-        .btn { background: none; border: none; cursor: pointer; padding: 5px; display: flex; align-items: center; }
-        .send { color: var(--c1); font-size: 24px; }
+        /* Barra de Entrada - Elevada y fija */
+        .input-box { padding: 10px 15px 40px; background: #000; border-top: 1px solid #222; }
+        .bar { background: #111; border: 1px solid #444; border-radius: 25px; display: flex; align-items: center; padding: 8px 15px; }
+        input { flex: 1; background: transparent; border: none; color: #fff; padding: 10px; outline: none; font-size: 16px; }
+        .btn-send { color: var(--glow); background: none; border: none; font-size: 24px; cursor: pointer; margin-left: 10px; }
     </style>
 </head>
-<body onclick="start()">
+<body onclick="activar()">
 
-    <div id="top"><div class="orb" id="orb"></div></div>
-    <div id="chat"></div>
+    <div id="visual-top"><div class="orb" id="orb"></div></div>
+    <div id="chat-container"></div>
 
-    <div class="bar">
-        <div class="card">
-            <button class="btn" style="color:#666; font-size:24px">+</button>
-            <input type="text" id="in" placeholder="Escribe aquí..." onkeypress="if(event.key==='Enter') send()">
-            <button class="btn" onclick="listen()" style="font-size:20px">🎤</button>
-            <button class="btn send" onclick="send()">➤</button>
+    <div class="input-box">
+        <div class="bar">
+            <input type="text" id="userInput" placeholder="Escribe aquí..." onkeypress="if(event.key==='Enter') enviar()">
+            <button class="btn-send" onclick="enviar()">➤</button>
         </div>
     </div>
 
     <script>
-        const KEY = "AIzaSyAjIJqYxSMCqP1r3" + "-1g8WA5hArNs_zZt18";
-        let on = false;
-        let user = localStorage.getItem('user_name');
+        const API_KEY = "AIzaSyAjIJqYxSMC" + "qP1r3-1g8WA5hArNs_zZt18";
+        let encendido = false;
+        let nombreGuardado = localStorage.getItem('user_name');
 
-        function start() {
-            if(on) return; on = true;
-            talk(user ? `Hola ${user}, estoy lista.` : "Sistemas activos. ¿En qué te ayudo?");
+        function activar() {
+            if(encendido) return; encendido = true;
+            hablar(nombreGuardado ? `Sistemas listos. ¿Qué planeas hoy, ${nombreGuardado}?` : "Mikasa activa. ¿En qué puedo ayudarte?");
         }
 
-        async function send() {
-            const el = document.getElementById('in');
-            const val = el.value.trim();
-            if(!val) return;
+        async function enviar() {
+            const el = document.getElementById('userInput');
+            const mensaje = el.value.trim();
+            if(!mensaje) return;
 
-            render(val, 'u');
+            render(mensaje, 'user');
             el.value = "";
-            if(document.querySelectorAll('.m').length > 2) document.getElementById('top').style.flex = "0 0 80px";
 
             try {
-                const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${KEY}`, {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: val }] }] })
+                    body: JSON.stringify({ contents: [{ parts: [{ text: mensaje }] }] })
                 });
 
-                const d = await r.json();
-                if(d.candidates && d.candidates[0].content) {
-                    talk(d.candidates[0].content.parts[0].text);
+                const data = await response.json();
+                if(data.candidates && data.candidates[0].content) {
+                    hablar(data.candidates[0].content.parts[0].text);
                 } else {
-                    render("Error de respuesta. Revisa tu API Key.", "i");
+                    render("Hubo un problema con la respuesta.", "ia");
                 }
             } catch (e) {
-                render("Sin conexión con el servidor.", "i");
+                render("Error de conexión.", "ia");
             }
         }
 
-        function talk(t) {
-            render(t, 'i');
+        function hablar(t) {
+            render(t, 'ia');
             window.speechSynthesis.cancel();
-            const s = new SpeechSynthesisUtterance(t);
-            s.lang = 'es-MX';
-            s.onstart = () => document.body.classList.add('talking');
-            s.onend = () => document.body.classList.remove('talking');
-            window.speechSynthesis.speak(s);
+            const voz = new SpeechSynthesisUtterance(t);
+            voz.lang = 'es-MX';
+            voz.onstart = () => document.getElementById('visual-top').classList.add('active');
+            voz.onend = () => document.getElementById('visual-top').classList.remove('active');
+            window.speechSynthesis.speak(voz);
         }
 
         function render(t, c) {
-            const h = document.getElementById('chat');
+            const h = document.getElementById('chat-container');
             const d = document.createElement('div');
-            d.className = `m ${c}`;
+            d.className = `msg ${c}`;
             d.innerText = t;
             h.appendChild(d);
             h.scrollTop = h.scrollHeight;
         }
-
-        function listen() {
-            const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if(!Rec) return;
-            const r = new Rec(); r.lang = 'es-ES';
-            r.onresult = (e) => { document.getElementById('in').value = e.results[0][0].transcript; send(); };
-            r.start();
-        }
     </script>
 </body>
 </html>
+
