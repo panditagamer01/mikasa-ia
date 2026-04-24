@@ -2,186 +2,116 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mikasa.ia | Asistente Inteligente</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mikasa.ia</title>
     <style>
-        :root { --accent: #00fbff; --secondary: #ff007f; --bg: #0d0d0d; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; }
-        
+        :root { --c1: #00fbff; --c2: #ff007f; --bg: #000; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg); color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* HEADER ESTÉTICO */
-        header { padding: 20px; text-align: center; font-weight: 800; letter-spacing: 4px; color: var(--accent); text-shadow: 0 0 15px rgba(0,251,255,0.3); }
-
-        /* CONTENEDOR VISUAL PRINCIPAL */
-        main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-between; position: relative; width: 100%; max-width: 800px; margin: 0 auto; padding: 20px; }
-
-        /* ESFERA ESTILO SIRI (MÁS DEFINIDA) */
-        .orb-container { position: relative; width: 180px; height: 180px; display: flex; align-items: center; justify-content: center; margin-top: 20px; }
+        /* Esfera Siri Centralizada */
+        #top { flex: 0 0 160px; display: flex; justify-content: center; align-items: center; position: relative; }
         .orb {
-            width: 130px; height: 130px;
-            background: radial-gradient(circle at 30% 30%, var(--accent), var(--secondary));
-            border-radius: 50%;
-            box-shadow: 0 0 40px rgba(0, 251, 255, 0.4), inset -10px -10px 20px rgba(0,0,0,0.5);
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative; z-index: 2;
+            width: 110px; height: 110px;
+            background: radial-gradient(circle at 30% 30%, var(--c1), var(--c2));
+            border-radius: 50%; filter: blur(2px);
+            box-shadow: 0 0 30px rgba(0,251,255,0.4);
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        /* Brillo exterior */
-        .orb-glow {
-            position: absolute; width: 160%; height: 160%;
-            background: radial-gradient(circle, rgba(0,251,255,0.15) 0%, transparent 70%);
-            border-radius: 50%; z-index: 1; animation: glowPulse 4s infinite;
-        }
+        .talking .orb { animation: wave 0.7s infinite alternate; box-shadow: 0 0 60px var(--c2); filter: blur(0px); }
+        @keyframes wave { from { transform: scale(1); border-radius: 50%; } to { transform: scale(1.15); border-radius: 40% 60% 45% 55%; } }
 
-        @keyframes glowPulse { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.1); } }
-        .talking .orb { transform: scale(1.15); box-shadow: 0 0 60px var(--secondary), 0 0 20px var(--accent); animation: siriWave 0.8s infinite ease-in-out; }
+        /* Chat Estilo Moderno */
+        #chat { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+        .m { max-width: 85%; padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; animation: in 0.3s ease; }
+        @keyframes in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .u { align-self: flex-end; background: #222; border-bottom-right-radius: 4px; }
+        .i { align-self: flex-start; background: rgba(0, 251, 255, 0.1); border: 1px solid rgba(0, 251, 255, 0.2); border-bottom-left-radius: 4px; }
 
-        @keyframes siriWave { 0%, 100% { border-radius: 50%; } 25% { border-radius: 45% 55% 50% 50%; } 75% { border-radius: 55% 45% 50% 50%; } }
-
-        /* ÁREA DE CHAT ESTILO CHATGPT */
-        #chat { width: 100%; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; padding: 20px 0; scroll-behavior: smooth; }
-        .msg { max-width: 85%; padding: 14px 18px; border-radius: 18px; font-size: 15px; line-height: 1.5; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .user { align-self: flex-end; background: #222; color: #eee; border-bottom-right-radius: 4px; }
-        .ia { align-self: flex-start; background: rgba(0, 251, 255, 0.05); color: #fff; border: 1px solid rgba(0, 251, 255, 0.1); border-bottom-left-radius: 4px; }
-
-        /* BARRA DE ENTRADA MODERNA */
-        .input-wrapper { width: 100%; padding-bottom: 30px; padding-top: 10px; }
-        .input-card {
-            background: #1a1a1a; border: 1px solid #333; border-radius: 30px;
-            display: flex; align-items: center; padding: 6px 15px; gap: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        
-        .action-btn { background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .plus { font-size: 28px; color: #888; }
-        .mic { width: 42px; height: 42px; border: 1px solid #444; border-radius: 50%; color: #fff; font-size: 20px; }
-        .send { color: var(--accent); font-size: 24px; padding-right: 5px; }
-        .action-btn:hover { opacity: 0.7; transform: scale(1.05); }
-
-        input { flex: 1; background: transparent; border: none; color: #fff; padding: 12px; font-size: 16px; outline: none; }
-
-        /* MENÚ FLOTANTE */
-        #menu {
-            position: absolute; bottom: 100px; left: 20px; right: 20px; background: #1a1a1a;
-            border: 1px solid #333; border-radius: 20px; padding: 20px; display: none;
-            grid-template-columns: repeat(4, 1fr); gap: 15px; z-index: 100;
-        }
-        #menu.show { display: grid; animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .m-item { text-align: center; font-size: 11px; color: #aaa; }
-        .m-icon { font-size: 24px; display: block; margin-bottom: 5px; color: #fff; }
-
-        /* RESPONSIVIDAD PARA PC */
-        @media (min-width: 1024px) {
-            .orb-container { width: 220px; height: 220px; }
-            .orb { width: 160px; height: 160px; }
-            #chat { max-height: 400px; }
-        }
+        /* Barra de Entrada Blindada */
+        .bar { padding: 15px 15px 35px; background: #000; border-top: 1px solid #222; }
+        .card { background: #111; border: 1px solid #333; border-radius: 30px; display: flex; align-items: center; padding: 5px 15px; }
+        input { flex: 1; background: transparent; border: none; color: #fff; padding: 12px; outline: none; font-size: 16px; }
+        .btn { background: none; border: none; cursor: pointer; padding: 5px; display: flex; align-items: center; }
+        .send { color: var(--c1); font-size: 24px; }
     </style>
 </head>
-<body onclick="iniciar()">
+<body onclick="start()">
 
-    <header>MIKASA.IA</header>
+    <div id="top"><div class="orb" id="orb"></div></div>
+    <div id="chat"></div>
 
-    <main>
-        <div class="orb-container" id="orbBox">
-            <div class="orb-glow"></div>
-            <div class="orb" id="orb"></div>
+    <div class="bar">
+        <div class="card">
+            <button class="btn" style="color:#666; font-size:24px">+</button>
+            <input type="text" id="in" placeholder="Escribe aquí..." onkeypress="if(event.key==='Enter') send()">
+            <button class="btn" onclick="listen()" style="font-size:20px">🎤</button>
+            <button class="btn send" onclick="send()">➤</button>
         </div>
-
-        <div id="chat"></div>
-
-        <div id="menu">
-            <div class="m-item"><span class="m-icon">📷</span>Cámara</div>
-            <div class="m-item"><span class="m-icon">🖼️</span>Fotos</div>
-            <div class="m-item"><span class="m-icon">📂</span>Docs</div>
-            <div class="m-item"><span class="m-icon">📍</span>Lugar</div>
-        </div>
-
-        <div class="input-wrapper">
-            <div class="input-card">
-                <button class="action-btn plus" onclick="toggleMenu()">+</button>
-                <input type="text" id="userInput" placeholder="Pregunta lo que quieras..." onkeypress="if(event.key==='Enter') enviar()">
-                <button class="action-btn mic" onclick="escuchar()">🎤</button>
-                <button class="action-btn send" onclick="enviar()">➤</button>
-            </div>
-        </div>
-    </main>
+    </div>
 
     <script>
-        const p1 = "AIzaSyAjIJqYxSMCqP1r3";
-        const p2 = "-1g8WA5hArNs_zZt18";
-        const API_KEY = p1 + p2;
+        const KEY = "AIzaSyAjIJqYxSMCqP1r3" + "-1g8WA5hArNs_zZt18";
+        let on = false;
+        let user = localStorage.getItem('user_name');
 
-        let activo = false;
-        let nombre = localStorage.getItem('user_name') || "Armando";
-
-        function toggleMenu() { document.getElementById('menu').classList.toggle('show'); }
-
-        function iniciar() {
-            if(activo) return;
-            activo = true;
-            responder(`Hola ${nombre}, sistemas listos. ¿En qué puedo ayudarte hoy?`);
+        function start() {
+            if(on) return; on = true;
+            talk(user ? `Hola ${user}, estoy lista.` : "Sistemas activos. ¿En qué te ayudo?");
         }
 
-        async function enviar() {
-            const input = document.getElementById('userInput');
-            const msg = input.value.trim();
-            if(!msg) return;
+        async function send() {
+            const el = document.getElementById('in');
+            const val = el.value.trim();
+            if(!val) return;
 
-            render(msg, 'user');
-            input.value = "";
-            document.getElementById('menu').classList.remove('show');
+            render(val, 'u');
+            el.value = "";
+            if(document.querySelectorAll('.m').length > 2) document.getElementById('top').style.flex = "0 0 80px";
 
             try {
-                // Configuración de la IA para que sea avanzada
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-                const res = await fetch(url, {
+                const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${KEY}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: `Eres Mikasa, una IA carismática y experta en Marketing Digital. Tu usuario es Armando Guzmán. Sé directo, inteligente y amable. Pregunta: ${msg}` }] }]
-                    })
+                    body: JSON.stringify({ contents: [{ parts: [{ text: val }] }] })
                 });
 
-                const data = await res.json();
-                if(data.candidates && data.candidates[0].content) {
-                    responder(data.candidates[0].content.parts[0].text);
-                } else { throw new Error(); }
-
+                const d = await r.json();
+                if(d.candidates && d.candidates[0].content) {
+                    talk(d.candidates[0].content.parts[0].text);
+                } else {
+                    render("Error de respuesta. Revisa tu API Key.", "i");
+                }
             } catch (e) {
-                console.error(e);
-                responder("Lo siento Armando, mi conexión ha parpadeado. ¿Puedes repetirlo?");
+                render("Sin conexión con el servidor.", "i");
             }
         }
 
-        function escuchar() {
-            const Reco = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if(!Reco) return;
-            const r = new Reco();
-            r.lang = 'es-ES';
-            r.onresult = (e) => { document.getElementById('userInput').value = e.results[0][0].transcript; enviar(); };
-            r.start();
-        }
-
-        function responder(t) {
-            render(t, 'ia');
+        function talk(t) {
+            render(t, 'i');
             window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(t);
-            u.lang = 'es-MX'; u.rate = 1.1;
-            u.onstart = () => document.getElementById('orbBox').classList.add('talking');
-            u.onend = () => document.getElementById('orbBox').classList.remove('talking');
-            window.speechSynthesis.speak(u);
+            const s = new SpeechSynthesisUtterance(t);
+            s.lang = 'es-MX';
+            s.onstart = () => document.body.classList.add('talking');
+            s.onend = () => document.body.classList.remove('talking');
+            window.speechSynthesis.speak(s);
         }
 
         function render(t, c) {
             const h = document.getElementById('chat');
             const d = document.createElement('div');
-            d.className = `msg ${c}`; d.innerText = t;
+            d.className = `m ${c}`;
+            d.innerText = t;
             h.appendChild(d);
             h.scrollTop = h.scrollHeight;
+        }
+
+        function listen() {
+            const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if(!Rec) return;
+            const r = new Rec(); r.lang = 'es-ES';
+            r.onresult = (e) => { document.getElementById('in').value = e.results[0][0].transcript; send(); };
+            r.start();
         }
     </script>
 </body>
