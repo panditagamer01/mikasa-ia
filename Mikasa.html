@@ -7,60 +7,88 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: #000; color: #fff; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
-        header { padding: 20px; text-align: center; color: #00fbff; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid #111; }
         
-        #visual-box { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; }
+        header { padding: 15px; text-align: center; color: #00fbff; font-weight: bold; letter-spacing: 2px; text-transform: uppercase; font-size: 1.2rem; }
+
+        /* Contenedor del Círculo (Nebulosa) */
+        #visual-box { flex: 0.8; display: flex; justify-content: center; align-items: center; position: relative; }
         .nebula {
-            width: 180px; height: 180px;
+            width: 220px; height: 220px;
             background: radial-gradient(circle, #ff007f, #00fbff);
             border-radius: 50%;
-            filter: blur(30px);
-            opacity: 0.5;
-            transition: all 0.4s ease;
+            filter: blur(25px);
+            opacity: 0.7;
+            transition: all 0.3s ease;
             animation: pulse 4s infinite;
+            box-shadow: 0 0 50px rgba(0, 251, 255, 0.4);
         }
-        .nebula.talking { transform: scale(1.4); opacity: 0.9; filter: blur(15px); }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        .nebula.talking { transform: scale(1.3); filter: blur(15px); opacity: 1; box-shadow: 0 0 70px rgba(255, 0, 127, 0.6); }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
+        /* Chat más arriba y mejor organizado */
         #chat {
-            position: absolute; bottom: 80px; width: 100%; max-height: 250px;
-            overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px;
+            flex: 1.2; width: 100%; overflow-y: auto; padding: 20px; 
+            display: flex; flex-direction: column; gap: 12px;
+            background: linear-gradient(to top, #000, transparent);
         }
-        .bubble { padding: 12px 18px; border-radius: 20px; max-width: 85%; font-size: 15px; }
-        .bubble.user { background: #00fbff15; color: #00fbff; align-self: flex-end; border: 1px solid #00fbff33; }
-        .bubble.ia { background: #ff007f15; color: #ff007f; align-self: flex-start; border: 1px solid #ff007f33; }
+        .bubble { padding: 12px 18px; border-radius: 20px; max-width: 85%; font-size: 15px; line-height: 1.4; }
+        .bubble.user { background: #00fbff15; color: #00fbff; align-self: flex-end; border: 1px solid #00fbff44; }
+        .bubble.ia { background: #ff007f15; color: #ff007f; align-self: flex-start; border: 1px solid #ff007f44; }
 
+        /* Barra de entrada con tus iconos */
         .input-bar {
-            padding: 15px; background: #0a0a0a; display: flex; gap: 10px; align-items: center;
-            border-top: 1px solid #222; padding-bottom: 30px;
+            padding: 15px; background: #0a0a0a; display: flex; gap: 12px; align-items: center;
+            border-top: 1px solid #222; padding-bottom: 25px;
         }
+        .icon-btn {
+            background: none; border: none; color: #fff; font-size: 24px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+        }
+        .plus-btn { color: #888; font-size: 30px; font-weight: 300; }
+        .mic-btn { color: #fff; border: 1px solid #333; border-radius: 50%; padding: 5px; }
+        .send-btn { color: #fff; font-size: 26px; transform: rotate(-10deg); }
+
         input {
-            flex: 1; background: #1a1a1a; border: 1px solid #333; padding: 15px; 
-            border-radius: 25px; color: #fff; outline: none;
+            flex: 1; background: #1a1a1a; border: none; padding: 12px 18px; 
+            border-radius: 25px; color: #fff; outline: none; font-size: 16px;
         }
-        .btn {
-            background: linear-gradient(135deg, #00fbff, #ff007f);
-            border: none; width: 50px; height: 50px; border-radius: 50%;
-            color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+
+        /* Menú de funciones oculto */
+        #menu {
+            position: fixed; bottom: -100%; left: 0; width: 100%; background: #111;
+            padding: 20px; display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 15px; transition: 0.4s ease; border-top: 1px solid #333; z-index: 100;
         }
+        #menu.open { bottom: 85px; }
+        .menu-item { text-align: center; color: #fff; font-size: 11px; }
+        .menu-icon { font-size: 24px; display: block; margin-bottom: 5px; }
     </style>
 </head>
 <body onclick="iniciar()">
 
-    <header>mikasa.ia</header>
+    <header>MIKASA.IA</header>
     
     <div id="visual-box">
         <div class="nebula" id="orb"></div>
-        <div id="chat"></div>
+    </div>
+
+    <div id="chat"></div>
+
+    <div id="menu">
+        <div class="menu-item"><span class="menu-icon">📷</span>Cámara</div>
+        <div class="menu-item"><span class="menu-icon">🖼️</span>Galería</div>
+        <div class="menu-item"><span class="menu-icon">📂</span>Archivos</div>
+        <div class="menu-item"><span class="menu-icon">📍</span>Ubicación</div>
     </div>
 
     <div class="input-bar">
+        <button class="icon-btn plus-btn" onclick="toggleMenu()">+</button>
         <input type="text" id="userInput" placeholder="Escribe aquí..." onkeypress="if(event.key==='Enter') enviar()">
-        <button class="btn" onclick="escuchar()">🎤</button>
+        <button class="icon-btn mic-btn" onclick="escuchar()">🎤</button>
+        <button class="icon-btn send-btn" onclick="enviar()">➤</button>
     </div>
 
     <script>
-        // Truco para proteger la llave en GitHub
         const p1 = "AIzaSyAjIJqYxSMCqP1r3";
         const p2 = "-1g8WA5hArNs_zZt18";
         const API_KEY = p1 + p2; 
@@ -68,14 +96,15 @@
         let activo = false;
         let nombreUsuario = localStorage.getItem('user_name'); 
 
+        function toggleMenu() { document.getElementById('menu').classList.toggle('open'); }
+
         function iniciar() {
             if(activo) return;
             activo = true;
-            
             if(!nombreUsuario) {
                 responder("Sistemas activos. No detecto un perfil registrado. ¿Cómo debo llamarte?");
             } else {
-                responder(`Bienvenido de nuevo. Sistemas listos. ¿En qué puedo ayudarte hoy?`);
+                responder(`Hola Armando, sistemas listos. ¿Qué vamos a crear hoy?`);
             }
         }
 
@@ -86,38 +115,41 @@
 
             renderMsg(texto, 'user');
             input.value = "";
+            document.getElementById('menu').classList.remove('open');
 
             if(!nombreUsuario && (texto.toLowerCase().includes("soy") || texto.length < 20)) {
-                nombreUsuario = texto.replace("Soy ", "").replace("soy ", "");
-                localStorage.setItem('user_name', nombreUsuario);
-                return responder(`Registro completado. Un placer, ${nombreUsuario}. ¿Qué vamos a crear hoy?`);
+                let posibleNombre = texto.toLowerCase().replace("soy ", "").trim();
+                if(posibleNombre === "armando") {
+                    nombreUsuario = "Armando";
+                    localStorage.setItem('user_name', nombreUsuario);
+                    return responder(`Registro completado. Bienvenido, Armando. ¿En qué puedo ayudarte?`);
+                }
             }
 
             try {
-                const promptFinal = nombreUsuario 
-                    ? `Tu nombre es Mikasa. Eres una IA inteligente y carismática. Te diriges a tu usuario registrado como ${nombreUsuario}. Ayúdale con sus dudas de marketing digital o cualquier tema. Pregunta: ${texto}`
-                    : `Tu nombre es Mikasa. Eres una IA inteligente y carismática. No conoces el nombre del usuario, así que sé formal y profesional. Pregunta: ${texto}`;
+                // Instrucción para que sea inteligente como ChatGPT/Gemini
+                const promptFinal = `Actúa como Mikasa, una IA extremadamente inteligente, carismática y útil. Eres la asistente personal de Armando. Armando tiene 20 años y estudia Marketing Digital. Responde de forma detallada y profesional a esto: ${texto}`;
 
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: promptFinal }] }]
-                    })
+                    body: JSON.stringify({ contents: [{ parts: [{ text: promptFinal }] }] })
                 });
 
                 const data = await res.json();
-                const respuestaIA = data.candidates[0].content.parts[0].text;
-                responder(respuestaIA);
+                if(data.candidates) {
+                    const respuestaIA = data.candidates[0].content.parts[0].text;
+                    responder(respuestaIA);
+                } else { throw new Error(); }
 
             } catch (e) {
-                responder("Hubo un error con la conexión. Verifica que tu llave esté activa.");
+                responder("Lo siento, parece que hay un problema con la señal. ¿Podrías repetirlo?");
             }
         }
 
         function escuchar() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitRecognition;
-            if (!SpeechRecognition) return responder("Navegador no compatible.");
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) return;
             const rec = new SpeechRecognition();
             rec.lang = 'es-ES';
             rec.onresult = (e) => {
