@@ -6,17 +6,12 @@
 <title>Mikasa IA</title>
 
 <style>
-:root { --c1:#00fbff; --c2:#ff007f; --bg:#000; }
+:root { --c1:#00fbff; --c2:#ff007f; }
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family: 'Segoe UI', sans-serif;
-}
+*{ margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
 
 body{
-background:var(--bg);
+background:#000;
 color:#fff;
 height:100vh;
 display:flex;
@@ -24,7 +19,7 @@ flex-direction:column;
 overflow:hidden;
 }
 
-/* LOGO */
+/* HEADER */
 header{
 position:absolute;
 top:15px;
@@ -32,15 +27,12 @@ left:15px;
 color:var(--c1);
 font-weight:900;
 letter-spacing:3px;
-font-size:0.9rem;
 z-index:10;
 }
 
 /* ORB */
 #top-visual{
 position:fixed;
-top:0;
-left:0;
 width:100%;
 height:100%;
 display:flex;
@@ -50,25 +42,25 @@ pointer-events:none;
 }
 
 .orb{
-width:140px;
-height:140px;
+width:130px;
+height:130px;
 border-radius:50%;
 background: radial-gradient(circle at 30% 30%, var(--c1), var(--c2));
-filter: blur(5px);
-box-shadow:0 0 40px var(--c1);
+filter: blur(6px);
+box-shadow:0 0 50px var(--c1);
 animation:pulse 4s infinite;
 }
 
 @keyframes pulse{
 0%{transform:scale(1);}
-50%{transform:scale(1.05);}
+50%{transform:scale(1.08);}
 100%{transform:scale(1);}
 }
 
 /* CHAT */
 #chat{
 flex:1;
-overflow-y:auto;
+overflow:auto;
 padding:20px;
 display:flex;
 flex-direction:column;
@@ -80,7 +72,6 @@ z-index:2;
 max-width:80%;
 padding:12px;
 border-radius:15px;
-font-size:14px;
 }
 
 .u{
@@ -103,30 +94,63 @@ padding:10px;
 background:#111;
 display:flex;
 gap:10px;
+z-index:10;
 }
 
 input{
 flex:1;
-padding:10px;
+padding:12px;
 border:none;
 outline:none;
 background:#222;
 color:#fff;
-border-radius:10px;
+border-radius:20px;
 }
 
 button{
-padding:10px;
 border:none;
+cursor:pointer;
+}
+
+/* BOTONES */
+.btn-plus{
+font-size:26px;
+background:none;
+color:#888;
+}
+
+.btn-send{
 background:var(--c1);
 color:#000;
+padding:10px 15px;
 border-radius:10px;
-cursor:pointer;
+}
+
+/* MENU */
+#menu{
+position:fixed;
+bottom:-200px;
+width:100%;
+background:#111;
+display:grid;
+grid-template-columns:repeat(4,1fr);
+padding:15px;
+transition:0.3s;
+z-index:20;
+}
+
+#menu.show{
+bottom:60px;
+}
+
+.m-item{
+text-align:center;
+font-size:12px;
 }
 </style>
 </head>
 
-<body>
+<body onload="start()">
 
 <header>MIKASA IA</header>
 
@@ -136,15 +160,32 @@ cursor:pointer;
 
 <div id="chat"></div>
 
+<!-- MENU -->
+<div id="menu">
+<div class="m-item">📷<br>Cámara</div>
+<div class="m-item">🖼️<br>Galería</div>
+<div class="m-item">📂<br>Archivos</div>
+<div class="m-item">📍<br>Ubicación</div>
+</div>
+
+<!-- INPUT -->
 <div class="bar">
-<input id="in" placeholder="Escribe aquí..." onkeypress="if(event.key==='Enter') send()">
-<button onclick="send()">Enviar</button>
+<button class="btn-plus" onclick="toggleMenu()">+</button>
+<input id="in" placeholder="Escribe..." onkeypress="if(event.key==='Enter') send()">
+<button class="btn-send" onclick="send()">Enviar</button>
 </div>
 
 <script>
 
-// ⚠️ SOLO PARA PRUEBAS (GitHub Pages)
-const API_KEY = "PON_TU_API_KEY_AQUI";
+const API_KEY = "TU_API_KEY_AQUI"; // ⚠️
+
+function start(){
+responder("Hola, soy Mikasa. ¿Qué vamos a crear hoy?");
+}
+
+function toggleMenu(){
+document.getElementById("menu").classList.toggle("show");
+}
 
 async function send(){
 const input = document.getElementById("in");
@@ -154,6 +195,7 @@ if(!msg) return;
 
 render(msg,"u");
 input.value="";
+toggleMenu(false);
 
 try{
 
@@ -165,8 +207,8 @@ contents:[{
 parts:[{
 text:`
 Eres Mikasa IA.
-Respondes de forma natural, inteligente y clara.
-No eres robótica.
+Hablas amigable, un poco futurista y directa.
+Respondes corto pero útil.
 
 Usuario: ${msg}
 `
@@ -184,7 +226,7 @@ data?.candidates?.[0]?.content?.parts?.[0]?.text ||
 responder(reply);
 
 }catch(e){
-render("Error de conexión o API bloqueada.","i");
+render("Error con la IA o la API.","i");
 }
 
 }
